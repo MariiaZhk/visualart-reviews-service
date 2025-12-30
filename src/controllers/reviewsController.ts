@@ -9,6 +9,7 @@ import {
   GetReviewsQuery,
   GetCountsDto,
 } from "../types/review";
+import { checkArtworkExists } from "../clients/artworkClient";
 
 export const createReview = async (
   req: Request,
@@ -16,22 +17,35 @@ export const createReview = async (
   next: NextFunction
 ) => {
   try {
-    const { artworkId, author, content, createdAt } =
-      req.body as CreateReviewDto;
+    const { artworkId, author, content, rating } = req.body as CreateReviewDto;
 
-    if (!artworkId || !author || !content) {
-      return res
-        .status(400)
-        .json({ message: "artworkId, author and content are required" });
+    if (!artworkId || !author || !content || rating == null) {
+      return res.status(400).json({
+        message: "artworkId, author, content and rating are required",
+      });
+    }
+
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        message: "rating must be a number between 1 and 5",
+      });
+    }
+
+    const exists = await checkArtworkExists(artworkId);
+    if (!exists) {
+      return res.status(400).json({
+        message: `Artwork with id ${artworkId} does not exist`,
+      });
     }
 
     const saved = await createReviewService({
       artworkId,
       author,
       content,
-      createdAt,
+      rating,
     });
-    res.status(201).json(saved);
+
+    return res.status(201).json(saved);
   } catch (err) {
     next(err);
   }
@@ -49,14 +63,23 @@ export const getReviews = async (
       from = "0",
     } = req.query as unknown as GetReviewsQuery;
 
-    if (!artworkId)
-      return res.status(400).json({ message: "artworkId is required" });
+    if (!artworkId) {
+      return res.status(400).json({
+        message: "artworkId is required",
+      });
+    }
 
-    const limit = parseInt(size, 10);
-    const skip = parseInt(from, 10);
+    const limit = Number(size);
+    const skip = Number(from);
+
+    if (Number.isNaN(limit) || Number.isNaN(skip) || limit < 0 || skip < 0) {
+      return res.status(400).json({
+        message: "size and from must be positive numbers",
+      });
+    }
 
     const reviews = await getReviewsService(artworkId, skip, limit);
-    res.json(reviews);
+    return res.json(reviews);
   } catch (err) {
     next(err);
   }
@@ -70,12 +93,14 @@ export const getReviewCounts = async (
   try {
     const { artworkIds } = req.body as GetCountsDto;
 
-    if (!Array.isArray(artworkIds)) {
-      return res.status(400).json({ message: "artworkIds must be an array" });
+    if (!Array.isArray(artworkIds) || artworkIds.length === 0) {
+      return res.status(400).json({
+        message: "artworkIds must be a non-empty array",
+      });
     }
 
     const counts = await getCountsService(artworkIds);
-    res.json(counts);
+    return res.json(counts);
   } catch (err) {
     next(err);
   }

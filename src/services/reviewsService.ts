@@ -1,31 +1,38 @@
-import { Review, IReview } from "../models/reviewModel";
+import { Review } from "../models/reviewModel";
 
-export const createReviewService = async (data: Partial<IReview>) => {
+export const createReviewService = async (data: {
+  artworkId: string;
+  author: string;
+  content: string;
+  rating: number;
+}) => {
   const review = new Review(data);
   return review.save();
 };
 
 export const getReviewsService = async (
   artworkId: string,
-  skip = 0,
-  limit = 10
+  skip: number,
+  limit: number
 ) => {
   return Review.find({ artworkId })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 };
 
 export const getCountsService = async (artworkIds: string[]) => {
-  const counts = await Review.aggregate([
+  const result = await Review.aggregate([
     { $match: { artworkId: { $in: artworkIds } } },
     { $group: { _id: "$artworkId", count: { $sum: 1 } } },
   ]);
 
-  const result: Record<string, number> = {};
-  artworkIds.forEach((id) => {
-    const c = counts.find((x) => x._id === id);
-    result[id] = c ? c.count : 0;
+  const counts: Record<string, number> = {};
+  artworkIds.forEach((id) => (counts[id] = 0));
+  result.forEach((r) => {
+    counts[r._id] = r.count;
   });
-  return result;
+
+  return counts;
 };

@@ -2,7 +2,7 @@ export interface CreateReviewDto {
   artworkId: string;
   author: string;
   content: string;
-  createdAt?: Date;
+  rating: number;
 }
 
 export interface GetReviewsQuery {
