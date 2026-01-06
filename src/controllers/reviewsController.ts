@@ -33,7 +33,7 @@ export const createReview = async (
 
     const exists = await checkArtworkExists(artworkId);
     if (!exists) {
-      return res.status(400).json({
+      return res.status(404).json({
         message: `Artwork with id ${artworkId} does not exist`,
       });
     }

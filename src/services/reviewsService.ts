@@ -16,7 +16,7 @@ export const getReviewsService = async (
   limit: number
 ) => {
   return Review.find({ artworkId })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: -1, _id: -1 })
     .skip(skip)
     .limit(limit)
     .lean();
