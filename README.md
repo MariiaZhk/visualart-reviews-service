@@ -1,6 +1,6 @@
 # 🎨 VisualArt Reviews Service
 
-A REST API for managing **reviews of artworks** (Entity 3) related to artworks (Entity 1).  
+A REST API for managing **reviews of artworks** (Entity 3) related to artworks (Entity 1).
 Built with **Node.js, TypeScript, Express, and MongoDB**, it allows creating reviews, listing them with pagination, and retrieving aggregated counts.
 
 ---
@@ -28,7 +28,7 @@ npm install
 
 ### 2. Environment configuration
 
-Create a `.env` file **locally**:
+Create a `.env` file locally:
 
 ```env
 PORT=4002
@@ -64,34 +64,50 @@ http://localhost:4002/api/reviews
 
 ---
 
-### POST `/api/reviews/`
+## POST `/api/reviews`
 
 Create a new review.
 
-**Request body:**
+### Request body
 
 ```json
 {
-  "artworkId": "string",
+  "artworkId": "1",
   "author": "string",
   "content": "string",
   "rating": 1
 }
 ```
 
-**Behavior:**
+### Behavior
 
 - Validates required fields and rating (1–5)
 - Automatically sets `createdAt`
 - Checks existence of the referenced Artwork via external service
+  (numeric artwork ID expected by Artwork service)
+
+### Response example (201 Created)
+
+```json
+{
+  "_id": "65f0c1e9e1b9c0c3a1b2c3d4",
+  "artworkId": "1",
+  "author": "string",
+  "content": "string",
+  "rating": 1,
+  "createdAt": "2026-01-06T14:34:35.169Z",
+  "updatedAt": "2026-01-06T14:34:35.169Z",
+  "__v": 0
+}
+```
 
 ---
 
-### GET `/api/reviews/`
+## GET `/api/reviews`
 
 Get reviews for a single artwork, sorted by newest first.
 
-**Query parameters:**
+### Query parameters
 
 | Name      | Required | Description                         |
 | --------- | -------- | ----------------------------------- |
@@ -99,27 +115,43 @@ Get reviews for a single artwork, sorted by newest first.
 | size      | ❌       | Max number of results (default: 10) |
 | from      | ❌       | Offset for pagination (default: 0)  |
 
+### Response example (200 OK)
+
+```json
+[
+  {
+    "_id": "65f0c1e9e1b9c0c3a1b2c3d4",
+    "artworkId": "1",
+    "author": "Maria",
+    "content": "Beautiful composition and colors",
+    "rating": 5,
+    "createdAt": "2026-01-06T14:34:35.169Z",
+    "updatedAt": "2026-01-06T14:34:35.169Z"
+  }
+]
+```
+
 ---
 
-### POST `/api/reviews/_counts`
+## POST `/api/reviews/_counts`
 
 Get total number of reviews for multiple artworks.
 
-**Request body:**
+### Request body
 
 ```json
 {
-  "artworkIds": ["art-1", "art-2", "art-3"]
+  "artworkIds": ["1", "2", "3"]
 }
 ```
 
-**Response example:**
+### Response example (200 OK)
 
 ```json
 {
-  "art-1": 5,
-  "art-2": 2,
-  "art-3": 0
+  "1": 5,
+  "2": 2,
+  "3": 0
 }
 ```
 
@@ -129,9 +161,9 @@ Get total number of reviews for multiple artworks.
 
 ## 🧪 Testing
 
-- Fully covered with **integration tests**.
-- Uses `mongodb-memory-server` for an isolated in-memory database.
-- External Artwork service is mocked.
+- Fully covered with **integration tests**
+- Uses `mongodb-memory-server` for an isolated in-memory database
+- External Artwork service is mocked
 
 Run tests:
 
@@ -143,6 +175,6 @@ npm test
 
 ## ⚡ Notes
 
-- Reviews have timestamps (`createdAt`) for sorting.
-- Compound index on `{ artworkId: 1, createdAt: -1 }` for efficient queries.
-- Designed to work in a microservice architecture.
+- Reviews have timestamps (`createdAt`) for sorting
+- Compound index on `{ artworkId: 1, createdAt: -1 }` for efficient queries
+- Designed to work in a microservice architecture
