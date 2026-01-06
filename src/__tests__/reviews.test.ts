@@ -86,7 +86,7 @@ describe("Reviews API", () => {
       .expect(200);
 
     expect(res.body.length).toBe(3);
-    expect(res.body[0].author).toBe("C"); // перевірка сортування
+    expect(res.body[0].author).toBe("C");
     expect(res.body[1].author).toBe("B");
     expect(res.body[2].author).toBe("A");
   });
